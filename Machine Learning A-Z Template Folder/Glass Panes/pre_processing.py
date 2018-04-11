@@ -31,6 +31,10 @@ class PreProcess:
         self.unparsed_dataframe.CellType = self.unparsed_dataframe.CellType.apply(lambda x: int(str(x)[6:]))
 
     def apply_cell_groupings_for_ds(self):
+        #   df.groupby('A', as_index=False)['B'].agg({'list':(lambda x: list(x))})
+        grouped = self.unparsed_dataframe.groupby("CellType")
+        df = grouped.aggregate(lambda x: list(x))
+        print(df.SampleTemp)
         self.ds_dataframe = self.unparsed_dataframe.groupby("CellType").mean()
         variance_columns = self.unparsed_dataframe.groupby("CellType").var()
         # set variance column titles to before concat
@@ -58,8 +62,6 @@ class PreProcess:
         self.y = self.complete_set.iloc[:, 15:23]
         self.x = self.complete_set.iloc[:, :15]
         self.x = pd.concat([self.x, self.complete_set.iloc[:, 23:]], axis=1)
-        print(self.x)
-
 
     def print_values(self):
         print(60 * ('='))
@@ -95,8 +97,8 @@ class Training:
         self.y_pred = None
 
         self.lin_reg = None
-
         self.test_train_split()
+        self.print_values()
         self.linear_regression()
 
     def test_train_split(self):
@@ -105,19 +107,28 @@ class Training:
 
     def linear_regression(self):
         self.lin_reg = LinearRegression()
-        self.lin_reg.fit(self.x_train, self.y_train)
-        self.y_pred = self.lin_reg.predict(self.x_test)
+        self.lin_reg.fit(self.x_train.SampleTemp, self.y_train.l1)
+        self.y_pred = self.lin_reg.predict(self.x_test.SampleTemp)
 
         self.regression_scatter()
 
     def regression_scatter(self):
         # Visualising the Training set results
         plt.scatter(self.x_train.SampleTemp, self.y_train.l1, color='red')
-        #plt.plot(self.x_train.SampleTemp, self.y_pred, color='blue')
+        # plt.plot(self.x_train.SampleTemp, self.y_pred.l1, color='red')
         plt.title('Sample Temp vs DS Output)')
         plt.xlabel('Total Thickness')
         plt.ylabel('DS Output')
         plt.show()
+
+    def print_values(self):
+        print(60 * ('='))
+        print(" - x - ")
+        print(self.x)
+        print(60 * ('='))
+        print(' - y - ')
+        print(self.y)
+        print(60 * ('='))
 
         # # Visualising the Test set results
         # plt.scatter(self.t_test, self.y_test, color='red')
@@ -131,6 +142,7 @@ class Training:
 
 pre_processor = PreProcess()
 # pre_processor.print_values()
-training = Training(pre_processor.x, pre_processor.y)
+#training = Training(pre_processor.x, pre_processor.y)
+#training.print_values()
 
 
